@@ -59,3 +59,18 @@ export const verifySuperAdmin = (req, res, next) => {
         next(createError(500, err.message));
     }
 };
+
+export const verifyIsSameUser = (req, res, next) => {
+    try {
+        verifyToken(req, res, () => {
+            const allowedRoles = ['manager', 'super_admin'];
+            if (allowedRoles.includes(req.user.role) || req.user._id.toString() === req.params.userId) {
+                next();
+            } else {
+                next(createError(403, 'Access denied'));
+            }
+        });
+    } catch (err) {
+        next(createError(500, err.message));
+    }
+};

@@ -58,7 +58,8 @@ export const login = async (req, res, next) => {
         const isPasswordCorrect = await bcrypt.compare(input_password, findedUser.password)
         if (!isPasswordCorrect) return next(createError(401, 'Wrong Credentials - password'))
 
-        const token = jwt.sign({ _id: findedUser._id, role: findedUser.role }, process.env.JWT_SECRET)
+        // without expiry, a stolen token would stay valid forever
+        const token = jwt.sign({ _id: findedUser._id, role: findedUser.role }, process.env.JWT_SECRET, { expiresIn: '7d' })
 
         res.status(201).json({ result: { ...findedUser._doc, token }, message: 'User logged in successfully', success: true })
 

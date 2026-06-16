@@ -10,7 +10,8 @@ const verifyIsAllocatedTo = async (req, res, next) => {
         const { leadId } = req.params
         const findedLead = await Lead.findById(leadId)
         if (!Boolean(findedLead)) return next(createError(400, 'lead not exist'))
-        if (findedLead.allocatedTo == req.user._id || req.user.role == ('manager' || 'super_admin')) next()
+        // ('manager' || 'super_admin') always evaluates to 'manager' in JS, so super_admin was never matched
+        if (findedLead.allocatedTo == req.user._id || ['manager', 'super_admin'].includes(req.user.role)) next()
         else next(createError(401, "This lead is not allocated to you."))
     } catch (err) {
         next(createError(500, err.message))

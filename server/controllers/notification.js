@@ -70,11 +70,12 @@ export const createRequestNotification = async (req, res, next) => {
         const isAlreadySend = await Notification.findOne({ 'data.email': email })
         if (Boolean(isAlreadySend)) return res.status(201).json({ message: 'Notification with this email already created', success: true })
 
+        // password was being stored in plaintext in the database
         const notification = await Notification.create({
             title: 'Registeration Approval',
             type: 'registeration-approval',
             description: 'Need approval for the registeration',
-            data: { firstName, lastName, username, phone, email, password }
+            data: { firstName, lastName, username, phone, email }
         })
 
 

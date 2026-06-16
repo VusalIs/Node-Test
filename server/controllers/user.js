@@ -108,7 +108,10 @@ export const getEmployees = async (req, res, next) => {
 export const createClient = async (req, res, next) => {
     try {
 
-        const findedUser = await User.findOne({ email: req.body.email })
+        const { username, phone, email } = req.body
+        if (!username || !phone) return next(createError(400, 'Username and phone are required'))
+
+        const findedUser = await User.findOne({ email })
         if (Boolean(findedUser)) return next(createError(400, 'Email already exist'))
 
         const result = await User.create({ ...req.body, role: 'client' })
@@ -121,14 +124,37 @@ export const createClient = async (req, res, next) => {
 export const createEmployee = async (req, res, next) => {
     try {
 
-        const findedUser = await User.findOne({ username: req.body.username })
+        const { username, phone, password } = req.body
+        if (!username || !phone || !password) return next(createError(400, 'Username, phone and password are required'))
+
+        const findedUser = await User.findOne({ username })
         if (Boolean(findedUser)) return next(createError(400, 'Username already exist'))
 
-        const { password } = req.body
         const hashedPassword = await bcrypt.hash(password, 12)
 
         const result = await User.create({ ...req.body, password: hashedPassword, role: 'employee' })
         res.status(200).json({ result, message: 'employee created seccessfully', success: true })
+
+    } catch (err) {
+        next(createError(500, err.message))
+    }
+}
+
+export const updateUser = async (req, res, next) => {
+    try {
+
+        const { userId } = req.params
+        const { role, ...updates } = req.body
+
+        const findedUser = await User.findById(userId)
+        if (!findedUser) return next(createError(404, 'User not exist'))
+
+        if (updates.password) {
+            updates.password = await bcrypt.hash(updates.password, 12)
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true })
+        res.status(200).json({ result: updatedUser, message: 'User updated successfully', success: true })
 
     } catch (err) {
         next(createError(500, err.message))
